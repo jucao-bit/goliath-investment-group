@@ -1,0 +1,86 @@
+[
+  {
+    "slug": "/equity-research/nvidia-infrastructure-layer-ai-economy",
+    "title": "Nvidia: The Infrastructure Layer of the AI Economy",
+    "excerpt": "A comprehensive analysis of Nvidia's dominant position in AI infrastructure, examining the competitive moat, financial trajectory, and long-term investment thesis for the backbone of the AI revolution.",
+    "category": "Equity Research",
+    "tags": [
+      "NVDA",
+      "semiconductors",
+      "AI",
+      "infrastructure",
+      "deep-dive"
+    ],
+    "date": "2026-04-07"
+  },
+  {
+    "slug": "/market-intelligence/weekly-market-recap-april-2026",
+    "title": "Markets This Week: Inflation Data, AI Earnings, and Fed Signals",
+    "excerpt": "A comprehensive review of this week's market action — from softer inflation prints to blockbuster AI earnings and shifting Fed rhetoric.",
+    "category": "Market Intelligence",
+    "tags": [
+      "weekly-recap",
+      "macro",
+      "fed",
+      "inflation",
+      "earnings"
+    ],
+    "date": "2026-04-06"
+  },
+  {
+    "slug": "/blog/ai-future-capital-allocation",
+    "title": "AI and the Future of Capital Allocation",
+    "excerpt": "How artificial intelligence is fundamentally reshaping investment decision-making, from quantitative strategies to fundamental research augmentation.",
+    "category": "Blog",
+    "tags": [
+      "AI",
+      "investing",
+      "technology",
+      "capital-allocation",
+      "future"
+    ],
+    "date": "2026-04-05"
+  },
+  {
+    "slug": "/market-intelligence/fed-policy-analysis-q2-2026",
+    "title": "Fed Policy Analysis: Navigating the Q2 2026 Crosscurrents",
+    "excerpt": "An in-depth analysis of Federal Reserve policy dynamics heading into Q2 2026, examining the tension between persistent services inflation and softening labor markets.",
+    "category": "Market Intelligence",
+    "tags": [
+      "fed",
+      "monetary-policy",
+      "macro",
+      "rates",
+      "inflation"
+    ],
+    "date": "2026-04-03"
+  },
+  {
+    "slug": "/equity-research/microsoft-ai-platform-play",
+    "title": "Microsoft: The AI Platform Play",
+    "excerpt": "Analyzing Microsoft's strategic positioning as the enterprise AI platform of choice, leveraging Azure, Copilot, and the OpenAI partnership to capture the next wave of enterprise spending.",
+    "category": "Equity Research",
+    "tags": [
+      "MSFT",
+      "AI",
+      "cloud",
+      "enterprise",
+      "platform"
+    ],
+    "date": "2026-04-01"
+  },
+  {
+    "slug": "/blog/technology-convergence-investment-framework",
+    "title": "The Technology Convergence Investment Framework",
+    "excerpt": "A framework for identifying and capitalizing on the convergence of AI, cloud infrastructure, and enterprise software — where the next decade of alpha will be generated.",
+    "category": "Blog",
+    "tags": [
+      "technology",
+      "investing",
+      "framework",
+      "AI",
+      "convergence"
+    ],
+    "date": "2026-03-28"
+  }
+]
