@@ -3,7 +3,7 @@ export const SITE_DESCRIPTION =
   'Institutional-grade equity research, macro commentary, and market intelligence';
 export const SITE_URL = 'https://goliathig.com';
 export const AUTHOR_NAME = 'Jonathan Cao';
-export const SUBSTACK_URL = 'https://yoursubstack.substack.com';
+export const SUBSTACK_URL = 'https://goliathig.substack.com';
 
 export interface NavItem {
   label: string;

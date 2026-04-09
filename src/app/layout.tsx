@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
-import SearchWrapper from "@/components/SearchWrapper";
 
 export const metadata: Metadata = {
   title: {
@@ -41,7 +40,6 @@ export default function RootLayout({
       <body className="min-h-full bg-[#faf8f5] text-[#1a1a2e]">
         <Header />
         <main>{children}</main>
-        <SearchWrapper />
       </body>
     </html>
   );

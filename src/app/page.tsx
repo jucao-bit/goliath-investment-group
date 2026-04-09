@@ -76,7 +76,7 @@ export default async function HomePage() {
             © {new Date().getFullYear()} Goliath Investment Group
           </p>
           <a
-            href="https://yoursubstack.substack.com"
+            href="https://goliathig.substack.com"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-[#9ca3af] tracking-widest uppercase font-light hover:text-[#1a1a2e] transition-colors duration-300"
