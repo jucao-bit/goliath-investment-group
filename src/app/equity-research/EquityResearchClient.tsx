@@ -48,7 +48,6 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
   const filtered = useMemo(() => {
     let result = [...posts];
 
-    // Search — match title or ticker
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(
@@ -58,12 +57,10 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
       );
     }
 
-    // Focus area
     if (focusArea !== "all") {
       result = result.filter((p) => getFocusAreas(p.tags).includes(focusArea));
     }
 
-    // Sort
     if (sort === "recent") {
       result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } else {
@@ -84,19 +81,24 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
         <div className="w-px h-16 bg-[#d4cfc8] mt-4" />
       </div>
 
-      {/* Toolbar */}
-      <div className="max-w-6xl mx-auto px-8 md:px-14 mb-12">
-        <div className="flex flex-wrap items-center gap-0 border-b border-t border-[#d4cfc8]">
+      {/* Toolbar — stacks on mobile, single row on desktop */}
+      <div className="max-w-6xl mx-auto px-4 md:px-14 mb-12">
+        <div className="flex flex-wrap items-stretch border-t border-b border-[#d4cfc8]">
 
           {/* Sort */}
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative w-1/2 md:w-auto border-b md:border-b-0 border-r border-[#d4cfc8]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => { setSortOpen(!sortOpen); setFocusOpen(false); }}
-              className="flex items-center gap-2 px-5 py-4 text-xs tracking-[0.15em] uppercase font-light text-[#1a1a2e] hover:text-[#c9a96e] transition-colors duration-200 border-r border-[#d4cfc8]"
+              className="w-full flex items-center justify-between md:justify-start gap-2 px-4 md:px-5 py-4 text-xs tracking-[0.15em] uppercase font-light text-[#1a1a2e] hover:text-[#c9a96e] transition-colors duration-200"
             >
-              Sort
-              <span className="text-[#c9a96e] text-[10px]">
-                {sort === "recent" ? "Recent" : "A–Z"}
+              <span className="flex items-center gap-2">
+                Sort
+                <span className="text-[#c9a96e] text-[10px]">
+                  {sort === "recent" ? "Recent" : "A–Z"}
+                </span>
               </span>
               <svg className={`w-3 h-3 transition-transform duration-200 ${sortOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -120,15 +122,20 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
           </div>
 
           {/* Focus Area */}
-          <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative w-1/2 md:w-auto border-b md:border-b-0 md:border-r border-[#d4cfc8]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => { setFocusOpen(!focusOpen); setSortOpen(false); }}
-              className="flex items-center gap-2 px-5 py-4 text-xs tracking-[0.15em] uppercase font-light text-[#1a1a2e] hover:text-[#c9a96e] transition-colors duration-200 border-r border-[#d4cfc8]"
+              className="w-full flex items-center justify-between md:justify-start gap-2 px-4 md:px-5 py-4 text-xs tracking-[0.15em] uppercase font-light text-[#1a1a2e] hover:text-[#c9a96e] transition-colors duration-200"
             >
-              Focus Area
-              {focusArea !== "all" && (
-                <span className="text-[#c9a96e] text-[10px] capitalize">{focusArea}</span>
-              )}
+              <span className="flex items-center gap-2">
+                Focus Area
+                {focusArea !== "all" && (
+                  <span className="text-[#c9a96e] text-[10px] capitalize">{focusArea}</span>
+                )}
+              </span>
               <svg className={`w-3 h-3 transition-transform duration-200 ${focusOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
@@ -158,8 +165,8 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
             )}
           </div>
 
-          {/* Search */}
-          <div className="flex items-center flex-1 px-5 py-4 gap-3 min-w-[160px]">
+          {/* Search + result count — full width on mobile, flex-1 on desktop */}
+          <div className="flex items-center w-full md:flex-1 px-4 md:px-5 py-4 gap-3">
             <svg className="w-3.5 h-3.5 text-[#b0a898] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -168,26 +175,25 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
               placeholder="Search company or ticker…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent text-xs tracking-wide font-light text-[#1a1a2e] placeholder-[#c0bab2] outline-none w-full"
+              className="bg-transparent text-xs tracking-wide font-light text-[#1a1a2e] placeholder-[#c0bab2] outline-none flex-1 min-w-0"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="text-[#b0a898] hover:text-[#1a1a2e] transition-colors">
+              <button onClick={() => setSearch("")} className="text-[#b0a898] hover:text-[#1a1a2e] transition-colors shrink-0">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}
+            <span className="text-xs text-[#b0a898] font-light tracking-wide border-l border-[#d4cfc8] pl-4 whitespace-nowrap shrink-0">
+              {filtered.length} {filtered.length === 1 ? "report" : "reports"}
+            </span>
           </div>
 
-          {/* Result count */}
-          <div className="px-5 py-4 text-xs text-[#b0a898] font-light tracking-wide border-l border-[#d4cfc8] whitespace-nowrap">
-            {filtered.length} {filtered.length === 1 ? "report" : "reports"}
-          </div>
         </div>
       </div>
 
       {/* Grid */}
-      <div className="max-w-6xl mx-auto px-8 md:px-14 pb-32">
+      <div className="max-w-6xl mx-auto px-4 md:px-14 pb-32">
         {filtered.length === 0 ? (
           <p className="text-center text-[#9ca3af] font-light py-24 text-sm tracking-wide">
             No reports match your search.
@@ -202,9 +208,7 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
               const bg = placeholderColor(ticker || post.title);
 
               const card = (
-                <div
-                  className="group bg-[#faf8f5] hover:bg-[#f0ece4] transition-colors duration-300 cursor-pointer flex flex-col border-r border-b border-[#e8e4de] h-full"
-                >
+                <div className="group bg-[#faf8f5] hover:bg-[#f0ece4] transition-colors duration-300 cursor-pointer flex flex-col border-r border-b border-[#e8e4de] h-full">
                   {/* Square image area */}
                   <div
                     className="relative w-full aspect-square overflow-hidden"
@@ -221,7 +225,7 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
                       <div className="w-full h-full flex items-center justify-center">
                         <span
                           className="font-serif font-light select-none text-[#1a1a2e] opacity-20 group-hover:opacity-30 transition-opacity duration-300"
-                          style={{ fontSize: "4rem" }}
+                          style={{ fontSize: "clamp(2rem, 6vw, 4rem)" }}
                         >
                           {ticker || post.title.charAt(0)}
                         </span>
@@ -230,16 +234,16 @@ export default function EquityResearchClient({ posts }: EquityResearchClientProp
                   </div>
 
                   {/* Text below */}
-                  <div className="px-4 py-4 flex flex-col gap-1">
-                    <h3 className="font-serif text-sm md:text-base font-light text-[#1a1a2e] leading-snug line-clamp-2 group-hover:opacity-60 transition-opacity duration-300">
+                  <div className="px-3 md:px-4 py-3 md:py-4 flex flex-col gap-1">
+                    <h3 className="font-serif text-xs md:text-sm lg:text-base font-light text-[#1a1a2e] leading-snug line-clamp-2 group-hover:opacity-60 transition-opacity duration-300">
                       {post.title}
                     </h3>
                     {ticker && (
-                      <p className="text-[11px] tracking-[0.15em] uppercase text-[#1a1a2e] font-light opacity-50">
+                      <p className="text-[10px] md:text-[11px] tracking-[0.15em] uppercase text-[#1a1a2e] font-light opacity-50">
                         {ticker}
                       </p>
                     )}
-                    <p className="text-[11px] text-[#b0a898] font-light tracking-wide">
+                    <p className="text-[10px] md:text-[11px] text-[#b0a898] font-light tracking-wide">
                       {dateStr}
                     </p>
                   </div>

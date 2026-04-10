@@ -18,7 +18,7 @@ export default function AboutPage() {
           Goliath Investment Group started as a way to stay accountable and informed — a commitment to doing the work the market demands.
         </p>
         <p className="mt-6 text-sm text-[#9ca3af] font-light leading-relaxed max-w-lg mx-auto">
-          Research is the backbone of not only an investor, but of knowledge as a whole. Every opinion should be earned through evidence.
+          Research is the backbone of every investor. Every opinion should be earned through evidence.
         </p>
       </div>
 

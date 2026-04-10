@@ -12,7 +12,7 @@ export default async function HomePage() {
 
         {/* Main heading */}
         <div className="flex-1 flex flex-col justify-center max-w-3xl">
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-light text-[#1a1a2e] leading-[1.05] tracking-tight mb-10">
+          <h1 className="font-serif text-4xl md:text-7xl lg:text-8xl font-light text-[#1a1a2e] leading-[1.05] tracking-tight mb-10">
             Institutional<br />
             Investment<br />
             Research.
@@ -41,24 +41,24 @@ export default async function HomePage() {
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group flex items-baseline justify-between py-4 hover:opacity-50 transition-opacity duration-300"
+                        className="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between py-4 hover:opacity-50 transition-opacity duration-300 gap-1"
                       >
-                        <span className="font-serif text-base md:text-lg text-[#1a1a2e] font-light leading-snug max-w-lg">
+                        <span className="font-serif text-base md:text-lg text-[#1a1a2e] font-light leading-snug">
                           {post.title}
                         </span>
-                        <span className="text-xs text-[#9ca3af] ml-6 shrink-0 font-light tabular-nums">
+                        <span className="text-xs text-[#9ca3af] sm:ml-6 shrink-0 font-light tabular-nums">
                           {dateStr}
                         </span>
                       </a>
                     ) : (
                       <Link
                         href={href}
-                        className="group flex items-baseline justify-between py-4 hover:opacity-50 transition-opacity duration-300"
+                        className="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between py-4 hover:opacity-50 transition-opacity duration-300 gap-1"
                       >
-                        <span className="font-serif text-base md:text-lg text-[#1a1a2e] font-light leading-snug max-w-lg">
+                        <span className="font-serif text-base md:text-lg text-[#1a1a2e] font-light leading-snug">
                           {post.title}
                         </span>
-                        <span className="text-xs text-[#9ca3af] ml-6 shrink-0 font-light tabular-nums">
+                        <span className="text-xs text-[#9ca3af] sm:ml-6 shrink-0 font-light tabular-nums">
                           {dateStr}
                         </span>
                       </Link>

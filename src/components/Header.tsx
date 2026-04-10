@@ -1,15 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import NavOverlay from "./NavOverlay";
 
 export default function Header() {
   const [navOpen, setNavOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY < 10) {
+        setVisible(true);
+      } else if (currentY > lastScrollY.current) {
+        setVisible(false); // scrolling down — hide
+      } else {
+        setVisible(true);  // scrolling up — show
+      }
+      lastScrollY.current = currentY;
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-14 py-7 mix-blend-normal">
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 md:px-14 py-7 mix-blend-normal transition-transform duration-300 ${
+          visible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         {/* Wordmark */}
         <Link
           href="/"
