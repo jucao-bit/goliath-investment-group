@@ -12,7 +12,7 @@ export default async function HomePage() {
 
         {/* Main heading */}
         <div className="flex-1 flex flex-col justify-center max-w-3xl">
-          <h1 className="font-serif text-4xl md:text-7xl lg:text-8xl font-light text-[#1a1a2e] leading-[1.05] tracking-tight mb-10">
+          <h1 className="font-serif text-6xl md:text-7xl lg:text-8xl font-light text-[#1a1a2e] leading-[1.05] tracking-tight mb-10">
             Institutional<br />
             Investment<br />
             Research.
