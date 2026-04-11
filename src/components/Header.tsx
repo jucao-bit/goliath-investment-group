@@ -12,12 +12,20 @@ export default function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY;
-      if (currentY < 10) {
-        setVisible(true);
-      } else if (currentY > lastScrollY.current) {
-        setVisible(false); // scrolling down — hide
+      const isMobile = window.innerWidth < 768;
+
+      if (isMobile) {
+        // Mobile: only show when at the very top
+        setVisible(currentY < 10);
       } else {
-        setVisible(true);  // scrolling up — show
+        // Desktop: hide on scroll down, show on scroll up
+        if (currentY < 10) {
+          setVisible(true);
+        } else if (currentY > lastScrollY.current) {
+          setVisible(false);
+        } else {
+          setVisible(true);
+        }
       }
       lastScrollY.current = currentY;
     };
