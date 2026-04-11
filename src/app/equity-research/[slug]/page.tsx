@@ -74,7 +74,7 @@ export default async function EquityResearchPostPage({ params }: PageProps) {
         </div>
 
         {/* MDX Content */}
-        <div className="prose">
+        <div className="prose max-w-none text-[#2a2a2a]">
           <MDXRemote
             source={post.content}
             options={{
