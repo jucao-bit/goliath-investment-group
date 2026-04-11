@@ -52,7 +52,7 @@ export const MDXComponents = {
   h1: ({ children, id }: HeadingProps) => (
     <h1
       id={id}
-      className="group font-serif text-4xl md:text-5xl font-bold text-[#2a2a2a] dark:text-white mt-8 mb-4 leading-tight"
+      className="group font-serif text-4xl md:text-5xl font-bold text-[#1a1a1a] mt-8 mb-4 leading-tight"
     >
       {children}
       <AnchorLink id={id} />
@@ -62,7 +62,7 @@ export const MDXComponents = {
   h2: ({ children, id }: HeadingProps) => (
     <h2
       id={id}
-      className="group font-serif text-3xl md:text-4xl font-bold text-[#2a2a2a] dark:text-white mt-8 mb-4 leading-tight"
+      className="group font-serif text-3xl md:text-4xl font-bold text-[#1a1a1a] mt-8 mb-4 leading-tight"
     >
       {children}
       <AnchorLink id={id} />
@@ -72,7 +72,7 @@ export const MDXComponents = {
   h3: ({ children, id }: HeadingProps) => (
     <h3
       id={id}
-      className="group font-serif text-2xl md:text-3xl font-semibold text-[#2a2a2a] dark:text-white mt-6 mb-3 leading-snug"
+      className="group font-serif text-2xl md:text-3xl font-semibold text-[#1a1a1a] mt-6 mb-3 leading-snug"
     >
       {children}
       <AnchorLink id={id} />
@@ -82,7 +82,7 @@ export const MDXComponents = {
   h4: ({ children, id }: HeadingProps) => (
     <h4
       id={id}
-      className="group font-serif text-xl md:text-2xl font-semibold text-[#2a2a2a] dark:text-white mt-6 mb-3"
+      className="group font-serif text-xl md:text-2xl font-semibold text-[#1a1a1a] mt-6 mb-3"
     >
       {children}
       <AnchorLink id={id} />
@@ -90,7 +90,7 @@ export const MDXComponents = {
   ),
 
   p: ({ children }: { children: ReactNode }) => (
-    <p className="text-base md:text-lg text-[#2a2a2a] dark:text-[#e5e7eb] leading-relaxed mb-6">
+    <p className="text-base md:text-lg text-[#444444] leading-relaxed mb-6">
       {children}
     </p>
   ),
@@ -111,7 +111,7 @@ export const MDXComponents = {
   },
 
   blockquote: ({ children }: QuoteProps) => (
-    <blockquote className="pl-6 py-4 mb-6 border-l-4 border-[#c9a96e] bg-gray-50 dark:bg-[#1a2a3a] text-[#6b7280] dark:text-[#a0aec0] italic">
+    <blockquote className="pl-6 py-4 mb-6 border-l-4 border-[#c9a96e] bg-[#f5f2ec] text-[#555555] italic">
       {children}
     </blockquote>
   ),
@@ -121,14 +121,14 @@ export const MDXComponents = {
 
     if (isInline) {
       return (
-        <code className="px-2 py-1 rounded bg-gray-100 dark:bg-[#1a2a3a] text-[#c9a96e] text-sm font-mono">
+        <code className="px-2 py-1 rounded bg-[#ede9e2] text-[#c9a96e] text-sm font-mono">
           {children}
         </code>
       );
     }
 
     return (
-      <pre className="overflow-x-auto rounded-lg bg-gray-900 dark:bg-black p-4 mb-6 border border-gray-800">
+      <pre className="overflow-x-auto rounded-lg bg-[#1a1a1a] p-4 mb-6 border border-[#333]">
         <code className={`${className} text-sm text-gray-100 font-mono`}>
           {children}
         </code>
@@ -137,7 +137,7 @@ export const MDXComponents = {
   },
 
   table: ({ children }: TableProps) => (
-    <div className="overflow-x-auto mb-6 border border-[#e5e5e5] dark:border-[#1a2a3a] rounded-lg">
+    <div className="overflow-x-auto mb-6 border border-[#e5e5e5] rounded-lg">
       <table className="w-full">
         {children}
       </table>
@@ -145,7 +145,7 @@ export const MDXComponents = {
   ),
 
   thead: ({ children }: { children: ReactNode }) => (
-    <thead className="bg-gray-100 dark:bg-[#1a2a3a] border-b border-[#e5e5e5] dark:border-[#254052]">
+    <thead className="bg-[#f0ece4] border-b border-[#e5e5e5]">
       {children}
     </thead>
   ),
@@ -153,31 +153,31 @@ export const MDXComponents = {
   tbody: ({ children }: { children: ReactNode }) => <tbody>{children}</tbody>,
 
   tr: ({ children }: { children: ReactNode }) => (
-    <tr className="border-b border-[#e5e5e5] dark:border-[#254052] hover:bg-gray-50 dark:hover:bg-[#0f1820] transition-colors">
+    <tr className="border-b border-[#e5e5e5] hover:bg-[#f5f2ec] transition-colors">
       {children}
     </tr>
   ),
 
   td: ({ children }: { children: ReactNode }) => (
-    <td className="px-4 py-3 text-sm text-[#2a2a2a] dark:text-[#e5e7eb]">
+    <td className="px-4 py-3 text-sm text-[#444444]">
       {children}
     </td>
   ),
 
   th: ({ children }: { children: ReactNode }) => (
-    <th className="px-4 py-3 text-sm font-semibold text-[#2a2a2a] dark:text-white text-left">
+    <th className="px-4 py-3 text-sm font-semibold text-[#1a1a1a] text-left">
       {children}
     </th>
   ),
 
   ul: ({ children }: ListProps) => (
-    <ul className="space-y-2 mb-6 ml-4 list-disc text-[#2a2a2a] dark:text-[#e5e7eb]">
+    <ul className="space-y-2 mb-6 ml-4 list-disc text-[#444444]">
       {children}
     </ul>
   ),
 
   ol: ({ children }: ListProps) => (
-    <ol className="space-y-2 mb-6 ml-4 list-decimal text-[#2a2a2a] dark:text-[#e5e7eb]">
+    <ol className="space-y-2 mb-6 ml-4 list-decimal text-[#444444]">
       {children}
     </ol>
   ),
