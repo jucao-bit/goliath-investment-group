@@ -62,7 +62,7 @@ export default async function MarketIntelligencePostPage({ params }: PageProps) 
           <span>{post.readTime}</span>
         </div>
 
-        <div className="prose">
+        <div className="max-w-none">
           <MDXRemote
             source={post.content}
             options={{
