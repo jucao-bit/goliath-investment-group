@@ -145,11 +145,14 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
 
   // ─── Helper: % since covered for a ticker ────────────────────────────────
   const getPctSinceCovered = useCallback((ticker: string): number | null => {
-    const candle = candleCache.current[ticker];
     const q = quotes[ticker];
-    if (!candle || candle.coveragePrice === null || !q) return null;
-    return ((q.price - candle.coveragePrice) / candle.coveragePrice) * 100;
-  }, [quotes, candlesLoaded]);
+    const meta = stocks.find((s) => s.ticker === ticker);
+    if (!q || !meta) return null;
+    // Prefer frontmatter price (always reliable), fall back to candle-derived
+    const base = meta.coveragePrice ?? candleCache.current[ticker]?.coveragePrice ?? null;
+    if (!base) return null;
+    return ((q.price - base) / base) * 100;
+  }, [quotes, stocks]);
 
   // ─── Build chart when candles + selection ready ───────────────────────────
   useEffect(() => {
@@ -161,9 +164,8 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
     for (const ticker of selectedTickers) {
       const candle = candleCache.current[ticker];
       const meta = stocks.find((s) => s.ticker === ticker);
-      if (!candle || candle.coveragePrice === null || !meta) continue;
-
-      const base = candle.coveragePrice;
+      const base = meta?.coveragePrice ?? candle?.coveragePrice ?? null;
+      if (!candle || !base || !meta) continue;
       const coverageDateStr = Object.keys(candle.byDate)
         .sort()
         .find((d) => d >= meta.date) ?? meta.date;
@@ -196,7 +198,7 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
 
   // ─── Default selection + filter re-apply ─────────────────────────────────
   useEffect(() => {
-    if (!candlesLoaded || loadingQuotes) return;
+    if (loadingQuotes) return;
 
     const ranked = [...tickers]
       .map((t) => ({ ticker: t, pct: getPctSinceCovered(t) ?? -Infinity }))
@@ -208,7 +210,7 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
     else pick = ranked.map((r) => r.ticker);
 
     setSelectedTickers(pick);
-  }, [candlesLoaded, loadingQuotes, filter]);
+  }, [loadingQuotes, filter, quotes]);
 
   // ─── WebSocket live prices ────────────────────────────────────────────────
   useEffect(() => {
@@ -267,7 +269,7 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
   });
 
   const filterLabel = FILTER_OPTIONS.find((o) => o.value === filter)?.label ?? 'Best Since Coverage';
-  const isLoading = loadingQuotes || !candlesLoaded;
+  const isLoading = loadingQuotes;
 
   const CustomTooltip = ({
     active, payload, label,
@@ -485,7 +487,7 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
                       {q ? `${dayIsUp ? '+' : ''}${q.changePercent.toFixed(2)}%` : '--'}
                     </td>
                     <td className={`px-4 py-3 text-right font-mono text-sm font-semibold ${pctIsUp ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {pct !== null ? `${pctIsUp ? '+' : ''}${pct.toFixed(2)}%` : (candlesLoaded ? 'N/A' : '--')}
+                      {pct !== null ? `${pctIsUp ? '+' : ''}${pct.toFixed(2)}%` : '--'}
                     </td>
                     <td className="px-4 py-3 text-right text-[#9ca3af] text-xs hidden md:table-cell">{meta?.date}</td>
                     <td className="px-4 py-3 text-center">

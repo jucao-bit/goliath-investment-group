@@ -15,6 +15,7 @@ export interface Post {
   featured: boolean;
   image?: string;
   substackUrl?: string;
+  coveragePrice?: number;
   content: string;
 }
 
@@ -53,6 +54,7 @@ function parsePost(filePath: string, category: string): Post | null {
       featured: data.featured === true,
       image: data.image,
       substackUrl: data.substackUrl,
+      coveragePrice: typeof data.coveragePrice === 'number' ? data.coveragePrice : undefined,
       content: content,
     };
   } catch (error) {

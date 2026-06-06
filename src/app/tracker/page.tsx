@@ -11,6 +11,7 @@ export interface StockMeta {
   title: string;
   slug: string;
   date: string;
+  coveragePrice?: number;
 }
 
 export default function TrackerPage() {
@@ -28,6 +29,7 @@ export default function TrackerPage() {
       title: post.title,
       slug: post.slug,
       date: post.date,
+      coveragePrice: post.coveragePrice,
     });
   }
 
