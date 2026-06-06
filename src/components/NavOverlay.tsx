@@ -16,16 +16,16 @@ const NAV_ITEMS = [
     description: "Deep-dive company analysis",
   },
   {
-    label: "Blog",
-    href: "/blog",
-    external: false,
-    description: "Markets, technology & investing",
-  },
-  {
     label: "Tracker",
     href: "/tracker",
     external: false,
     description: "Live coverage universe performance",
+  },
+  {
+    label: "Blog",
+    href: "/blog",
+    external: false,
+    description: "Markets, technology & investing",
   },
   {
     label: "Team",
