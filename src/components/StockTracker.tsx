@@ -22,11 +22,8 @@ interface QuoteData {
   prevClose: number;
 }
 
-// Candle stored as { dateStr -> close } for O(1) lookup, no timestamp mismatch
-interface CandleMap {
-  byDate: Record<string, number>; // "2026-03-07" -> close price
-  coveragePrice: number | null;   // close on or after coverage date
-}
+// date string -> close price
+type CandleMap = Record<string, number>;
 
 interface ChartPoint {
   date: string;
@@ -42,8 +39,6 @@ const CHART_COLORS = [
   '#7a5a8a',
   '#9e5a5a',
 ];
-
-const FINNHUB_KEY = process.env.NEXT_PUBLIC_FINNHUB_KEY ?? '';
 
 const FILTER_OPTIONS = [
   { value: 'best', label: 'Best Since Coverage' },
@@ -76,112 +71,127 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const wsRef = useRef<WebSocket | null>(null);
   const candleCache = useRef<Record<string, CandleMap>>({});
   const searchRef = useRef<HTMLDivElement>(null);
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // ─── Fetch quotes ────────────────────────────────────────────────────────
+  // ─── Fetch all stocks on mount (quote + candles in one call) ─────────────
   useEffect(() => {
-    if (!FINNHUB_KEY || tickers.length === 0) { setLoadingQuotes(false); return; }
-
-    async function fetchQuotes() {
-      const results: Record<string, QuoteData> = {};
-      for (const ticker of tickers) {
-        try {
-          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${FINNHUB_KEY}`);
-          const d = await res.json();
-          if (d.c) results[ticker] = { price: d.c, change: d.d ?? 0, changePercent: d.dp ?? 0, prevClose: d.pc ?? d.c };
-        } catch { /* skip */ }
-      }
-      setQuotes(results);
-      setLoadingQuotes(false);
-    }
-
-    fetchQuotes();
-    const iv = setInterval(fetchQuotes, 60_000);
-    return () => clearInterval(iv);
-  }, []);
-
-  // ─── Fetch ALL candles on mount (fix: use date strings, not timestamps) ──
-  useEffect(() => {
-    if (!FINNHUB_KEY || stocks.length === 0) { setCandlesLoaded(true); return; }
-
-    const startTs = Math.floor(new Date('2026-01-02').getTime() / 1000);
-    const endTs = Math.floor(Date.now() / 1000);
+    if (tickers.length === 0) { setLoadingQuotes(false); setCandlesLoaded(true); return; }
 
     async function fetchAll() {
-      for (const stock of stocks) {
-        if (candleCache.current[stock.ticker]) continue;
+      const newQuotes: Record<string, QuoteData> = {};
+
+      await Promise.all(tickers.map(async (ticker) => {
         try {
-          const res = await fetch(
-            `https://finnhub.io/api/v1/stock/candle?symbol=${stock.ticker}&resolution=D&from=${startTs}&to=${endTs}&token=${FINNHUB_KEY}`
-          );
+          const res = await fetch(`/api/stock/${ticker}`);
+          if (!res.ok) return;
           const data = await res.json();
-          if (data.s === 'ok' && data.t?.length) {
-            // Build date-string map
-            const byDate: Record<string, number> = {};
-            data.t.forEach((ts: number, i: number) => {
-              byDate[tsToDateStr(ts)] = data.c[i];
+
+          // Store quote
+          if (data.price) {
+            newQuotes[ticker] = {
+              price: data.price,
+              change: data.change ?? 0,
+              changePercent: data.changePercent ?? 0,
+              prevClose: data.prevClose ?? data.price,
+            };
+          }
+
+          // Build date-string candle map
+          if (data.timestamps?.length && data.closes?.length) {
+            const map: CandleMap = {};
+            data.timestamps.forEach((ts: number, i: number) => {
+              const close = data.closes[i];
+              if (close != null) map[tsToDateStr(ts)] = close;
             });
-
-            // Find coverage price: first close on or after coverage date
-            const coverageTs = new Date(stock.date).getTime() / 1000;
-            let coveragePrice: number | null = null;
-            const sortedTs: number[] = [...data.t].sort((a: number, b: number) => a - b);
-            for (const ts of sortedTs) {
-              if (ts >= coverageTs) { coveragePrice = byDate[tsToDateStr(ts)]; break; }
-            }
-
-            candleCache.current[stock.ticker] = { byDate, coveragePrice };
+            candleCache.current[ticker] = map;
           }
         } catch { /* skip */ }
-      }
+      }));
+
+      setQuotes(newQuotes);
+      setLoadingQuotes(false);
       setCandlesLoaded(true);
     }
 
     fetchAll();
+
+    // Refresh quotes every 60 s
+    const iv = setInterval(async () => {
+      const updated: Record<string, QuoteData> = {};
+      await Promise.all(tickers.map(async (ticker) => {
+        try {
+          const res = await fetch(`/api/stock/${ticker}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data.price) {
+            updated[ticker] = {
+              price: data.price,
+              change: data.change ?? 0,
+              changePercent: data.changePercent ?? 0,
+              prevClose: data.prevClose ?? data.price,
+            };
+          }
+        } catch { /* skip */ }
+      }));
+      if (Object.keys(updated).length > 0) setQuotes((prev) => ({ ...prev, ...updated }));
+    }, 60_000);
+
+    return () => clearInterval(iv);
   }, []);
 
-  // ─── Helper: % since covered for a ticker ────────────────────────────────
+  // ─── Helper: % since covered ──────────────────────────────────────────────
   const getPctSinceCovered = useCallback((ticker: string): number | null => {
     const q = quotes[ticker];
     const meta = stocks.find((s) => s.ticker === ticker);
     if (!q || !meta) return null;
-    // Prefer frontmatter price (always reliable), fall back to candle-derived
-    const base = meta.coveragePrice ?? candleCache.current[ticker]?.coveragePrice ?? null;
+
+    // Use frontmatter price first, fall back to first candle on/after coverage date
+    let base = meta.coveragePrice ?? null;
+    if (!base) {
+      const candle = candleCache.current[ticker];
+      if (candle) {
+        const firstDate = Object.keys(candle).sort().find((d) => d >= meta.date);
+        if (firstDate) base = candle[firstDate];
+      }
+    }
     if (!base) return null;
     return ((q.price - base) / base) * 100;
   }, [quotes, stocks]);
 
-  // ─── Build chart when candles + selection ready ───────────────────────────
+  // ─── Build chart data ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!candlesLoaded || selectedTickers.length === 0) return;
 
-    // Build per-stock date → % since coverage map
-    const stockMaps: Record<string, Record<string, number>> = {};
-
     const todayStr = new Date().toISOString().split('T')[0];
+    const stockMaps: Record<string, Record<string, number>> = {};
 
     for (const ticker of selectedTickers) {
       const candle = candleCache.current[ticker];
       const meta = stocks.find((s) => s.ticker === ticker);
       if (!meta) continue;
-      const base = meta.coveragePrice ?? candle?.coveragePrice ?? null;
+
+      // Resolve baseline price
+      let base = meta.coveragePrice ?? null;
+      if (!base && candle) {
+        const firstDate = Object.keys(candle).sort().find((d) => d >= meta.date);
+        if (firstDate) base = candle[firstDate];
+      }
       if (!base) continue;
 
-      if (candle && Object.keys(candle.byDate).length > 0) {
-        // Full daily history from Finnhub
-        const coverageDateStr = Object.keys(candle.byDate).sort().find((d) => d >= meta.date) ?? meta.date;
+      if (candle && Object.keys(candle).length > 0) {
+        // Full daily path
+        const coverageDateStr = Object.keys(candle).sort().find((d) => d >= meta.date) ?? meta.date;
         const map: Record<string, number> = {};
-        for (const [dateStr, close] of Object.entries(candle.byDate)) {
+        for (const [dateStr, close] of Object.entries(candle)) {
           if (dateStr >= coverageDateStr) {
             map[dateStr] = parseFloat((((close - base) / base) * 100).toFixed(2));
           }
         }
         stockMaps[ticker] = map;
       } else {
-        // Fallback: straight line from coverage date (0%) to today
+        // Fallback: straight line from coverage date → today
         const q = quotes[ticker];
         const map: Record<string, number> = { [meta.date]: 0 };
         if (q) map[todayStr] = parseFloat((((q.price - base) / base) * 100).toFixed(2));
@@ -189,7 +199,6 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
       }
     }
 
-    // Merge all date strings
     const allDates = new Set<string>();
     Object.values(stockMaps).forEach((m) => Object.keys(m).forEach((d) => allDates.add(d)));
     const sortedDates = Array.from(allDates).sort();
@@ -206,7 +215,7 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
     setChartData(points);
   }, [selectedTickers, candlesLoaded, quotes]);
 
-  // ─── Default selection + filter re-apply ─────────────────────────────────
+  // ─── Default selection + filter ───────────────────────────────────────────
   useEffect(() => {
     if (loadingQuotes) return;
 
@@ -221,29 +230,6 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
 
     setSelectedTickers(pick);
   }, [loadingQuotes, filter, quotes]);
-
-  // ─── WebSocket live prices ────────────────────────────────────────────────
-  useEffect(() => {
-    if (!FINNHUB_KEY || selectedTickers.length === 0) return;
-    wsRef.current?.close();
-    const ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_KEY}`);
-    wsRef.current = ws;
-    ws.onopen = () => selectedTickers.forEach((t) => ws.send(JSON.stringify({ type: 'subscribe', symbol: t })));
-    ws.onmessage = (evt) => {
-      const msg = JSON.parse(evt.data);
-      if (msg.type === 'trade' && msg.data) {
-        msg.data.forEach((trade: { s: string; p: number }) => {
-          setQuotes((prev) => {
-            const ex = prev[trade.s];
-            if (!ex) return prev;
-            const change = trade.p - ex.prevClose;
-            return { ...prev, [trade.s]: { ...ex, price: trade.p, change, changePercent: (change / ex.prevClose) * 100 } };
-          });
-        });
-      }
-    };
-    return () => wsRef.current?.close();
-  }, [selectedTickers]);
 
   // ─── Close dropdowns on outside click ────────────────────────────────────
   useEffect(() => {
@@ -271,7 +257,6 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
     return t.toLowerCase().includes(q) || meta?.title.toLowerCase().includes(q);
   });
 
-  // Table sorted by % since covered (best first)
   const tableRows = [...tickers].sort((a, b) => {
     const pa = getPctSinceCovered(a) ?? -Infinity;
     const pb = getPctSinceCovered(b) ?? -Infinity;
@@ -279,7 +264,6 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
   });
 
   const filterLabel = FILTER_OPTIONS.find((o) => o.value === filter)?.label ?? 'Best Since Coverage';
-  const isLoading = loadingQuotes;
 
   const CustomTooltip = ({
     active, payload, label,
@@ -303,13 +287,6 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#faf8f5] pt-32 pb-24 px-8 md:px-14 max-w-6xl mx-auto">
-
-      {!FINNHUB_KEY && (
-        <div className="mb-8 px-4 py-3 border border-[#c9a96e]/50 bg-[#c9a96e]/10 text-sm text-[#1a1a2e]">
-          <strong>Setup required:</strong> Add <code className="font-mono bg-[#e8e4de] px-1">NEXT_PUBLIC_FINNHUB_KEY</code> to Vercel environment variables.{' '}
-          <a href="https://finnhub.io" target="_blank" rel="noopener noreferrer" className="text-[#c9a96e] underline">Get a free key at finnhub.io</a>
-        </div>
-      )}
 
       {/* Header */}
       <div className="mb-10">
@@ -404,12 +381,10 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
 
       {/* Chart */}
       <div className="border border-[#e8e4de] bg-white p-6 mb-10">
-        {isLoading ? (
+        {loadingQuotes ? (
           <div className="h-80 flex items-center justify-center text-[#9ca3af] text-sm">Loading data...</div>
         ) : chartData.length === 0 ? (
-          <div className="h-80 flex items-center justify-center text-[#9ca3af] text-sm">
-            {!FINNHUB_KEY ? 'API key required' : 'No chart data available'}
-          </div>
+          <div className="h-80 flex items-center justify-center text-[#9ca3af] text-sm">Select stocks above to view chart</div>
         ) : (
           <>
             <p className="text-[10px] tracking-widest uppercase text-[#9ca3af] mb-4">% since coverage initiation</p>
