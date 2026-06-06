@@ -161,22 +161,32 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
     // Build per-stock date → % since coverage map
     const stockMaps: Record<string, Record<string, number>> = {};
 
+    const todayStr = new Date().toISOString().split('T')[0];
+
     for (const ticker of selectedTickers) {
       const candle = candleCache.current[ticker];
       const meta = stocks.find((s) => s.ticker === ticker);
-      const base = meta?.coveragePrice ?? candle?.coveragePrice ?? null;
-      if (!candle || !base || !meta) continue;
-      const coverageDateStr = Object.keys(candle.byDate)
-        .sort()
-        .find((d) => d >= meta.date) ?? meta.date;
+      if (!meta) continue;
+      const base = meta.coveragePrice ?? candle?.coveragePrice ?? null;
+      if (!base) continue;
 
-      const map: Record<string, number> = {};
-      for (const [dateStr, close] of Object.entries(candle.byDate)) {
-        if (dateStr >= coverageDateStr) {
-          map[dateStr] = parseFloat((((close - base) / base) * 100).toFixed(2));
+      if (candle && Object.keys(candle.byDate).length > 0) {
+        // Full daily history from Finnhub
+        const coverageDateStr = Object.keys(candle.byDate).sort().find((d) => d >= meta.date) ?? meta.date;
+        const map: Record<string, number> = {};
+        for (const [dateStr, close] of Object.entries(candle.byDate)) {
+          if (dateStr >= coverageDateStr) {
+            map[dateStr] = parseFloat((((close - base) / base) * 100).toFixed(2));
+          }
         }
+        stockMaps[ticker] = map;
+      } else {
+        // Fallback: straight line from coverage date (0%) to today
+        const q = quotes[ticker];
+        const map: Record<string, number> = { [meta.date]: 0 };
+        if (q) map[todayStr] = parseFloat((((q.price - base) / base) * 100).toFixed(2));
+        stockMaps[ticker] = map;
       }
-      stockMaps[ticker] = map;
     }
 
     // Merge all date strings
@@ -194,7 +204,7 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
     });
 
     setChartData(points);
-  }, [selectedTickers, candlesLoaded]);
+  }, [selectedTickers, candlesLoaded, quotes]);
 
   // ─── Default selection + filter re-apply ─────────────────────────────────
   useEffect(() => {
