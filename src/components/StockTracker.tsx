@@ -53,9 +53,31 @@ function tsToDateStr(ts: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function dateStrToLabel(s: string): string {
-  const [, m, d] = s.split('-');
-  return `${parseInt(m)}/${parseInt(d)}`;
+function formatQuarterLabel(dateStr: string): string {
+  const month = parseInt(dateStr.slice(5, 7));
+  const year = dateStr.slice(2, 4);
+  const q = month <= 3 ? 'Q1' : month <= 6 ? 'Q2' : month <= 9 ? 'Q3' : 'Q4';
+  return `${q} '${year}`;
+}
+
+function formatTooltipDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+}
+
+function getQuarterlyTicks(dates: string[]): string[] {
+  if (dates.length === 0) return [];
+  const ticks: string[] = [];
+  const years = [...new Set(dates.map((d) => d.slice(0, 4)))];
+  for (const year of years) {
+    for (const month of ['01', '04', '07', '10']) {
+      const qStart = `${year}-${month}-01`;
+      const nearest = dates.find((d) => d >= qStart);
+      if (nearest && !ticks.includes(nearest)) ticks.push(nearest);
+    }
+  }
+  return ticks.sort();
 }
 
 export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
@@ -204,7 +226,7 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
     const sortedDates = Array.from(allDates).sort();
 
     const points: ChartPoint[] = sortedDates.map((dateStr) => {
-      const pt: ChartPoint = { date: dateStrToLabel(dateStr) };
+      const pt: ChartPoint = { date: dateStr };
       for (const ticker of selectedTickers) {
         const val = stockMaps[ticker]?.[dateStr];
         pt[ticker] = val !== undefined ? val : null;
@@ -265,13 +287,15 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
 
   const filterLabel = FILTER_OPTIONS.find((o) => o.value === filter)?.label ?? 'Best Since Coverage';
 
+  const quarterlyTicks = getQuarterlyTicks(chartData.map((p) => p.date as string));
+
   const CustomTooltip = ({
     active, payload, label,
   }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) => {
     if (!active || !payload?.length) return null;
     return (
       <div className="border border-[#e8e4de] bg-white p-3 text-xs shadow-sm">
-        <p className="text-[#9ca3af] mb-2 font-sans">{label}</p>
+        <p className="text-[#9ca3af] mb-2 font-sans">{label ? formatTooltipDate(label) : ''}</p>
         {payload.filter((e) => e.value != null).map((entry) => (
           <p key={entry.name} className="flex gap-4 justify-between font-sans">
             <span style={{ color: entry.color }} className="font-mono font-semibold">{entry.name}</span>
@@ -393,9 +417,10 @@ export default function StockTracker({ stocks }: { stocks: StockMeta[] }) {
                 <CartesianGrid strokeDasharray="2 6" stroke="#e8e4de" vertical={false} />
                 <XAxis
                   dataKey="date"
+                  ticks={quarterlyTicks}
+                  tickFormatter={formatQuarterLabel}
                   tick={{ fontSize: 11, fill: '#b0a898', fontFamily: 'Inter, sans-serif' }}
                   axisLine={false} tickLine={false}
-                  interval="preserveStartEnd"
                 />
                 <YAxis
                   tick={{ fontSize: 11, fill: '#b0a898', fontFamily: 'Inter, sans-serif' }}
