@@ -22,6 +22,12 @@ const NAV_ITEMS = [
     description: "Markets, technology & investing",
   },
   {
+    label: "Tracker",
+    href: "/tracker",
+    external: false,
+    description: "Live coverage universe performance",
+  },
+  {
     label: "Team",
     href: "/about",
     external: false,
